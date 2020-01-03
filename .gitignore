@@ -1,4 +1,6 @@
 .ipynb_checkpoints/
+paper/
+maps/
 temp/
 data/
 *.Rproj
