@@ -39,21 +39,22 @@ getRMA <- function(type, years) {
     if (type == "claim") {
       myurl <- paste(paste("https://www.rma.usda.gov/-/media/RMAweb/Cause-Of-Loss/Summary-of-Business-with-Month-of-Loss/colsom_", year, sep = ""), ".ashx?la=en", sep = "")
       cols  <- c("year", "stfips", "stabb", "cntyfips", "cntyname", "commoditycode", "commodityname", 
-                 "insplancode","insplanname", "covcateg", "stagecode", "damagecausecode", "damagecausedesc", "monthloss", "monthname", "polprem", 
+                 "insplancode","insplanname", "covcateg", "stagecode", "damagecausecode", "damagecausedesc", "monthloss", "monthname", "yearloss", "polprem", 
                  "polindemn",  "acres", "endorsedacres",  
-                 "liab", "totalpremium", "subsidies", "lostacres", "indemnityamount", "lossratio")
+                 "liab", "totalpremium", "producerpremuim", "subsidies", "stateprivatesubs", "addsubs", "EFApremdiscount", "lostacres", "indemnityamount", "lossratio")
     }
     response <- GET(myurl)
     writeBin(content(response, as = "raw"), "~/Downloads/temp.zip")
     fName <- unzip("~/Downloads/temp.zip", list = TRUE)$Name
     unzip("~/Downloads/temp.zip", exdir = "temp")
     pathtemp <- paste0(getwd(), "/temp/")
-    my_data <- read.table(paste0(pathtemp, fName), sep ="|", header = FALSE, dec =".", quote = "", fill=TRUE)
+    ## add skipNul = TRUE, strip.white = TRUE
+    my_data <- read.table(paste0(pathtemp, fName), sep ="|", header = FALSE, dec =".", quote = "", fill=TRUE, skipNul = TRUE, strip.white = TRUE)
     names(my_data) <- cols
-    my_data$covcateg <- trimws(my_data$covcateg, which = "right") 
-    if (type == "policy") {
-      my_data$quanttype <- trimws(my_data$quanttype, which = "right")
-    }
+    #my_data$covcateg <- trimws(my_data$covcateg, which = "right") 
+    #if (type == "policy") {
+    #  my_data$quanttype <- trimws(my_data$quanttype, which = "right")
+    #}
     dfs[[y]] <- my_data
   }
   data <- do.call("rbind", dfs)
@@ -178,7 +179,7 @@ for (i in 1:ncol(m)) {
   marginal_effects_table[i,3] <- marginal_effects_table[i,1] / marginal_effects_table[i,2]
   marginal_effects_table[i,4] <- 2*pt(-abs(marginal_effects_table[i,3]),df=length(m[,i])-1)
   marginal_effects_table[i,5] <- length(m[,i])
-  }
+}
 rownames(marginal_effects_table) <- colnames(m)
 me_names <- c("Mean", "SE", "tstat", "p-value", "n")
 colnames(marginal_effects_table) <- me_names
