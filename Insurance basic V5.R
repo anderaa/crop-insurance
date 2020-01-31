@@ -62,15 +62,24 @@ getRMA <- function(type, years) {
   return(data)
 }
 
-polacres <- getRMA(type='policy', years=c(2017, 2018))
+polacres <- getRMA(type='policy', years=c(2017))
 print(dim(polacres))
 
 claims <- getRMA(type='claim', years=c(2017, 2018))
 print(dim(claims))
 
+sumCov <- function(df, variable, w=0) {
+  sub_df <- df[ , grepl(variable , names( df ))]
+  names(sub_df) <- suppressWarnings(as.numeric(sub(paste(variable, ".", sep = ""), "", names(sub_df))))
+  sub_df[,is.na(names(sub_df))] <- NULL
+  ifelse(w == 0,
+        return(rowSums(sub_df)),
+        return(rowSums(as.matrix(sub_df) %*% diag(names(sub_df))))
+  )
+        }
+
 format_policies <- function(df) {
   # TODO: add docstring
-  
   df <- reshape(df, idvar = c("year", "stfips", "stabb", "cntyfips", "cntyname", 
                               "commoditycode", "commodityname", "insplancode", 
                               "insplanname", "covcateg", "claim"), 
@@ -78,20 +87,17 @@ format_policies <- function(df) {
   df[is.na(df)] <- 0
   # calculate the mean coverage level and the number of units sold by year, stfips, 
   # cntyfips, commoditycode, insplancode, covcateg, claim combination
-  df$acres.total <- df$acres.0.95 + df$acres.0.9 + df$acres.0.85 + df$acres.0.8 + df$acres.0.75 + 
-    df$acres.0.7 + df$acres.0.65 + df$acres.0.6 + df$acres.0.55 + df$acres.0.5 
-  df$meancov <- (0.95*df$acres.0.95 + 0.9*df$acres.0.9 + 0.85*df$acres.0.85 + 0.8*df$acres.0.8 + 
-                   0.75*df$acres.0.75 + 0.7*df$acres.0.7 + 0.65*df$acres.0.65 + 0.6*df$acres.0.6 + 
-                   0.55*df$acres.0.55 + 0.5*df$acres.0.5) / df$acres.total
-  df$unitssold <- df$unitssold.0.95 + df$unitssold.0.9 + df$unitssold.0.85 + df$unitssold.0.8 + 
-    df$unitssold.0.75 + df$unitssold.0.7 + df$unitssold.0.65 + df$unitssold.0.6 + 
-    df$unitssold.0.55 + df$unitssold.0.5
+  df$acres.total <- sumCov(df, "acres") 
+  df$unitssold <- sumCov(df, "unitssold")
+  df$meancov <- sumCov(df, "acres", w=1) / df$acres.total
   myvars <- c("year","stfips", "stabb", "cntyfips", "cntyname", "commoditycode", "commodityname", 
               "insplancode", "insplanname", "covcateg", "claim", "acres.total", "unitssold", "meancov")
   df <- df[myvars]
   
   return(df)
 }
+
+
 
 # only keep policies with premium expressed in acres and known commodity code
 polacres <- polacres[polacres$polprem > 0 &  
