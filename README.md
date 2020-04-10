@@ -1,8 +1,7 @@
-# crop-insurance
-A project to estimate wildlife damage through analysis of crop insurance data.
+### A project to estimate wildlife damage through analysis of crop insurance data.
 
-Sophie Mckee, Phd
-Stephanie Shwiff, Phd
-Aaron Anderson, Phd
+Sophie Mckee, PhD <br>
+Stephanie Shwiff, PhD <br>
+Aaron Anderson, PhD <br>
 
 USDA National Wildlife Research Center
