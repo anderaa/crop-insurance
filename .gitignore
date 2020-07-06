@@ -3,7 +3,6 @@
 paper/
 maps/
 temp/
-data/
 *.Rproj
 
 # History files
